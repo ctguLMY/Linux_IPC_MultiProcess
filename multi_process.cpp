@@ -111,31 +111,31 @@ int V(int semid)  //V操作，使信号量的值加一
  * @param {empty, full, shmid}
  * @return {*}
  */
-void main_create_sem_shm(int empty, int full, int shmid){
+void main_create_sem_shm(int *empty, int *full, int *shmid){
 	
-    empty = sem_create(SEM_KEY_1, 1); //set semaphore empty initial value = 1;
-    full = sem_create(SEM_KEY_2, 0); //set semaphore full initial value = 0;
+    *empty = sem_create(SEM_KEY_1, 1); //set semaphore empty initial value = 1;
+    *full = sem_create(SEM_KEY_2, 0); //set semaphore full initial value = 0;
     //create shared memory
-    shmid = shmget(SHM_KEY, sizeof(struct msg_data), 0666 | IPC_CREAT);
-    if(shmid == -1)
+    *shmid = shmget(SHM_KEY, sizeof(struct msg_data), 0666 | IPC_CREAT);
+    if(*shmid == -1)
     {
         perror("shmget");
         exit(-1);
     }
 
-    printf("empty=%d\tfull=%d\tshmid=%d\n", empty, full, shmid);
+    printf("empty=%d\tfull=%d\tshmid=%d\n", *empty, *full, *shmid);
 }
 /**
  * @description: child process get semaphores and shared memory
  * @param {empty, full, shmid}
  * @return {*}
  */
-void process_get_sem_shm(int empty, int full, int shmid){
+void process_get_sem_shm(int *empty, int *full, int *shmid){
 	 
-        empty = semget(SEM_KEY_1, 1, 0); //get semaphore 
-        full = semget(SEM_KEY_2, 1, 0);
-        shmid = shmget(SHM_KEY, 1024, 0);  //get shared memory
-        if(empty == -1 || full == -1 || shmid == -1)
+        *empty = semget(SEM_KEY_1, 1, 0); //get semaphore 
+        *full = semget(SEM_KEY_2, 1, 0);
+        *shmid = shmget(SHM_KEY, 1024, 0);  //get shared memory
+        if(*empty == -1 || *full == -1 || *shmid == -1)
         {
             perror("get");
             exit(-1);
@@ -172,7 +172,7 @@ int main()
     
     //create shared memory
     int empty, full, shmid;
-    main_create_sem_shm(empty, full, shmid);
+    main_create_sem_shm(&empty, &full, &shmid);
   
     //create 3 proces as producer
     if((p1 = fork()) == 0)
@@ -181,7 +181,7 @@ int main()
         printf("create pid = %d, ppid = %d\n", getpid(), getppid());
 
         int empty, full, shmid;
-        process_get_sem_shm(empty, full, shmid);
+        process_get_sem_shm(&empty, &full, &shmid);
 
         struct msg_data *buf;
         void *tmp = shmat(shmid, (void *)0, 0); //process map the Shared memory
@@ -208,7 +208,7 @@ int main()
         printf("create pid = %d, ppid = %d\n", getpid(), getppid());
 
         int empty, full, shmid;
-        process_get_sem_shm(empty, full, shmid);
+        process_get_sem_shm(&empty, &full, &shmid);
 
         struct msg_data *buf;
         void *tmp = shmat(shmid, NULL, 0); //process map the Shared memory
@@ -232,7 +232,7 @@ int main()
         printf("create pid = %d, ppid = %d\n", getpid(), getppid());
 
         int empty, full, shmid;
-        process_get_sem_shm(empty, full, shmid);
+        process_get_sem_shm(&empty, &full, &shmid);
 
         struct msg_data *buf;
         void *tmp = shmat(shmid, NULL, 0); //process map the Shared memory
@@ -255,7 +255,7 @@ int main()
         //process customer
         cout << "create customer thread" << endl;
         int empty, full, shmid;
-        process_get_sem_shm(empty, full, shmid);
+        process_get_sem_shm(&empty, &full, &shmid);
 
         struct msg_data *buf;
         buf = (struct msg_data *)shmat(shmid, NULL, 0); //process map the Shared memory
